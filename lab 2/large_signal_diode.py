@@ -34,23 +34,22 @@ print(f"n = {popt[1]:.4}")
 plt.plot(vd, diode_eqn(vd, 3e-10, 1.6))
 # %%
 res = scipy.stats.linregress(df["Vd"], np.log(df["Id"]))
+
+Is = np.exp(res.intercept)
+n = 1/(res.slope*phi_th)
+print(f"Is = {Is:.4}")
+print(f"n = {n:.4}")
 # %%
 plt.yscale("log")
 
 plt.scatter(df["Vd"], df["Id"])
 
-plt.plot(vd, np.exp(res.intercept + res.slope*vd), c='tab:orange', label='fit')
+plt.plot(vd, diode_eqn(vd, Is, n), c='tab:green', label="analytical equation")
+plt.plot(vd, np.exp(res.intercept + res.slope*vd), linestyle='--', c='tab:orange', label='fit')
 
 plt.grid()
 plt.xlabel("$v_D$")
 plt.ylabel("$i_D$")
 
 plt.legend()
-
-Is = np.exp(res.intercept)
-n = 1/(res.slope*phi_th)
-print(f"Is = {Is:.4}")
-print(f"n = {n:.4}")
-
-# plt.plot(vd, diode_eqn(vd, Is, n))
 # %%
