@@ -29,14 +29,14 @@ plt.plot(av['second'], wave(av['second'], *fit_out[0]))
 print(fit_out[0][1], fit_in[0][1])
 fit_out[0][1]/fit_in[0][1]
 # %%
-r_in = pd.read_csv("data/scope_15.csv", header=1)
+r_in = pd.read_csv("data/scope_16.csv", header=1)
 
 t = r_in['second']
 vin_before = r_in['Volt.1']
 vin_after = r_in['Volt']
 # %%
-fit_before = curve_fit(wave, t, vin_before, p0=[100e3, 0.01, 0, 0])
-fit_after = curve_fit(wave, t, vin_after, p0=[100e3, 1.0, 0, 0])
+fit_before = curve_fit(wave, t, vin_before, p0=[50e3, 0.01, 0, 0])
+fit_after = curve_fit(wave, t, vin_after, p0=[50e3, 1.0, 0, 0])
 
 plt.subplot(2,1,1)
 plt.plot(t, vin_before)
@@ -47,9 +47,9 @@ plt.plot(t, vin_after)
 plt.plot(t, wave(t, *fit_after[0]))
 
 # print(fit_out[0][0], fit_in[0][0])
-print(fit_before[0][1] * 1000, fit_after[0][1]*1000)
+print(fit_before[0][1]*2 * 1000, fit_after[0][1]*2 *1000)
 # %%
-r_out = pd.read_csv("data/scope_9.csv", header=1)
+r_out = pd.read_csv("data/scope_15.csv", header=1)
 
 t = r_out['second']
 vin = r_out['Volt']
@@ -67,5 +67,5 @@ plt.plot(t, vout)
 plt.plot(t, wave(t, *fit_out[0]))
 
 # print(fit_out[0][0], fit_in[0][0])
-print(fit_in[0][1] * 1000, fit_out[0][1]*1000)
+print(fit_in[0][1]*2 * 1000, fit_out[0][1]*2 *1000)
 # %%
