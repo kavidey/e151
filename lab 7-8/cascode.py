@@ -52,43 +52,18 @@ miller_gain = miller(gm, s, Rs, rpi, Rb, Rc, Cmu + Cbread, Cpi + Cbread) * (s/pz
 miller_db = 20 * np.log10(np.abs(miller_gain))
 miller_angle = np.angle(miller_gain)
 
-amp_a = pd.read_csv("data/amp_a.csv", sep='	')
+cascode = pd.read_csv("data/cascode.csv", sep='	')
 
 fig, axs = plt.subplots(2,1, sharex=True)
 axs[0].plot(f, tf_db, label="Full TF")
 axs[0].plot(f, miller_db, label="Miller")
 axs[0].set_xscale("log")
-axs[0].scatter(amp_a["Frequency [kHz]"]*1e3, amp_a["dB"])
+axs[0].scatter(cascode["Frequency [kHz]"]*1e3, cascode["dB"])
 axs[0].legend()
 
 axs[1].plot(f, np.unwrap(tf_angle/np.pi*180) + 180)
 axs[1].plot(f, np.unwrap(miller_angle/np.pi*180) + 180)
-axs[1].scatter(amp_a["Frequency [kHz]"]*1e3, amp_a["Phase (out to in)"])
+axs[1].scatter(cascode["Frequency [kHz]"]*1e3, cascode["Phase"])
 
-axs[0].set_title("Amp A")
-# %%
-pz1 = 1/(1e-6 * (rin+50)) # 1 uF coupling capacitor sees rin of CE + 50Ω src impedance of fgen
-tf_gain = tf(s, gm, Rc, ro, Rs, rpi, Cmu, Cpi + 2*Cbread) * (s/pz1)/(s/pz1 + 1)
-tf_db = 20 * np.log10(np.abs(tf_gain))
-tf_angle = np.angle(tf_gain)
-
-p_bread = 1/(Cbread * Rc)
-miller_gain = miller(gm, s, Rs, rpi, Rb, Rc, Cmu, 2*Cbread) * (s/pz1)/(s/pz1 + 1) * 1/(s/p_bread + 1)
-miller_db = 20 * np.log10(np.abs(miller_gain))
-miller_angle = np.angle(miller_gain)
-
-amp_a = pd.read_csv("data/amp_b.csv", sep='	')
-
-fig, axs = plt.subplots(2,1, sharex=True)
-axs[0].plot(f, tf_db, label="Full TF")
-axs[0].plot(f, miller_db, label="Miller")
-axs[0].set_xscale("log")
-axs[0].scatter(amp_a["Frequency [kHz]"]*1e3, amp_a["dB"])
-axs[0].legend()
-
-axs[1].plot(f, np.unwrap(tf_angle/np.pi*180) + 180)
-axs[1].plot(f, np.unwrap(miller_angle/np.pi*180) + 180)
-axs[1].scatter(amp_a["Frequency [kHz]"]*1e3, amp_a["Phase (out to in)"])
-
-axs[0].set_title("Amp B")
+axs[0].set_title("Cascode")
 # %%
