@@ -5,64 +5,66 @@ import pandas as pd
 
 %config InlineBackend.figure_format = 'retina'
 # %%
-def parallel(Z1,Z2):
-    return Z1 * Z2 / (Z1 + Z2)
-    # return 1/(1/Z1 + 1/Z2)
+def parallel(Z):
+    return 1/np.sum(1/np.array(Z))
 
-def tf(s, gm, Rc, ro, Rs, rpi, Cmu, Cpi):
-    Rcllro = parallel(Rc,ro)
-    Rsllrpi = parallel(Rs,rpi)
-    feed_forward_zero = (1-(s*(Cmu/gm)))
-    first_order = Cmu*(Rcllro + Rsllrpi + gm*Rcllro*Rsllrpi) + Cpi*Rsllrpi
-    second_order = Cmu*Cpi*Rcllro*Rsllrpi
-    print(first_order, second_order)
-    return (-gm*Rc) *  feed_forward_zero / (1 + s*first_order + (s**2)*second_order)
+def left_right(RL, RR, gm):
+    return RL + RR + gm * RL * RR
 
-def miller(gm, s, Rs, rpi, Rb, Rc, Cmu, Cpi):
-    p_mu = 1/(parallel(parallel(Rs, rpi), Rb) * Cmu * (1 + gm*Rc))
-    p_pi = 1/(parallel(parallel(Rs, rpi), Rb) * Cpi)
-    return (-gm*Rc) * 1/(s/p_mu + 1) * 1/(s/p_pi + 1)
+def pole_zero(s, pz):
+    return (s/pz) / (s/pz + 1)
+
+def pole(s, p):
+    return (1/(s/p + 1))
 # %%
 f = np.logspace(2,7.5, 1000)
 s = 1j * f * 2 * np.pi
 # %%
-gm = 39.97e-3
-ro = 150e3
 Rc = 3.233e3
-Rb = 990
 Re = 5079
+Rs = 50
+R1 = 20e3
+R2 = 10.130e3
+R3 = 11.750e3
+R4 = 10.090e3
+Ratten = 50
+
+ro = 150e3
 beta = 200
-Ic = 1.039e-3
+Ic = 0.97e-3
+
 phi_th = 26e-3
 rpi = beta * phi_th / Ic
-Rs = 50
-rin = 881.6
+gm = Ic / phi_th
+
 Cmu = 4e-12
 Cpi = 15.29e-12
 Cbread = 2.15e-12
+Cbnc = 49e-12
+Cscope = 10e-12
 # %%
-pz1 = 1/(1e-6 * (rin+50)) # 1 uF coupling capacitor sees rin of CE + 50Ω src impedance of fgen
-tf_gain = tf(s, gm, Rc, ro, Rs, rpi, Cmu + Cbread, Cpi + Cbread) * (s/pz1)/(s/pz1 + 1)
-tf_db = 20 * np.log10(np.abs(tf_gain))
-tf_angle = np.angle(tf_gain)
+OCTC_pi = parallel([Rs, Ratten, rpi, R1, R2]) * (2*Cbread + Cpi + Cbnc)
+OCTC_mu = left_right(parallel([Rs, Ratten, R1, R2, rpi]), parallel([rpi, (ro + Rc)/(gm*ro)]), gm) * Cmu
+OCTC_3 = parallel([rpi, (ro + Rc)/(gm*ro+1), ro]) * (2*Cbread)
+OCTC_mu2 = parallel([Rc, beta * ro]) * Cmu
+OCTC_pi2 = parallel([rpi, ro, (ro + Rc)/(gm*ro+1)]) * Cpi
+OCTC_scope = Rc * (Cbread + Cscope)
 
-p_bread = 1/(Cbread * Rc)
-miller_gain = miller(gm, s, Rs, rpi, Rb, Rc, Cmu + Cbread, Cpi + Cbread) * (s/pz1)/(s/pz1 + 1)
+OCTC = OCTC_pi + OCTC_mu + OCTC_3 + OCTC_mu2 + OCTC_pi2 + OCTC_scope
 
-miller_db = 20 * np.log10(np.abs(miller_gain))
-miller_angle = np.angle(miller_gain)
-
+octc_approx = (-gm*Rc) * pole(s, 1/OCTC)
+octc_db = 20 * np.log10(np.abs(octc_approx))
+octc_angle = np.angle(octc_approx)
+# %%
 cascode = pd.read_csv("data/cascode.csv", sep='	')
 
 fig, axs = plt.subplots(2,1, sharex=True)
-axs[0].plot(f, tf_db, label="Full TF")
-axs[0].plot(f, miller_db, label="Miller")
+axs[0].plot(f, octc_db, label="OCTC")
 axs[0].set_xscale("log")
 axs[0].scatter(cascode["Frequency [kHz]"]*1e3, cascode["dB"])
 axs[0].legend()
 
-axs[1].plot(f, np.unwrap(tf_angle/np.pi*180) + 180)
-axs[1].plot(f, np.unwrap(miller_angle/np.pi*180) + 180)
+axs[1].plot(f, np.unwrap(octc_angle/np.pi*180) - 180)
 axs[1].scatter(cascode["Frequency [kHz]"]*1e3, cascode["Phase"])
 
 axs[0].set_title("Cascode")
