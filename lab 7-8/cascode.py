@@ -59,7 +59,7 @@ OCTC = OCTC_pi + OCTC_mu + OCTC_3 + OCTC_mu2 + OCTC_pi2 + OCTC_scope
 SCTC_cb1 = Cb * (parallel([Rs, Ratten]) + parallel([rpi, R1, R2]))
 SCTC_cb2 = (Cb+2*Cbread) * (beta * ro)
 
-gm1eff = rpi/(rpi + parallel([Rs, Ratten]) ) * gm
+gm1eff = rpi/(rpi + parallel([Rs, Ratten, R1, R2]) ) * gm
 SCTC_ce = Ce * parallel([(ro + parallel([1/gm, rpi])) / (gm1eff * ro + 1), parallel([Rs, Ratten, R1, R2]) + rpi, Re])
 
 SCTC = 1/SCTC_cb1 + 1/SCTC_cb2 + 1/SCTC_ce
